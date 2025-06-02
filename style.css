@@ -1,0 +1,30 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f2f2f2;
+  padding: 20px;
+}
+
+h1, h2 {
+  color: #003366; /* Azul institucional */
+}
+
+form {
+  background-color: #ffffff;
+  padding: 10px;
+  border: 2px solid #006400; /* Verde institucional */
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+
+input, button {
+  margin: 5px;
+  padding: 8px;
+  font-size: 14px;
+}
+
+button {
+  background-color: #006400;
+  color: white;
+  border: none;
+  cursor: pointer;
+}

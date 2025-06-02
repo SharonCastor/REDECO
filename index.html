@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema REDECO</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      background-color: #0033a0;
+      color: white;
+      padding: 15px;
+      border-radius: 5px;
+    }
+    input, select, button {
+      padding: 8px;
+      margin: 5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #0055b8;
+      color: white;
+    }
+    .acciones button {
+      margin-right: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sistema REDECO</h1>
+  <div>
+    <input type="text" id="buscar" placeholder="Buscar por nombre o estado">
+    <button onclick="obtenerInstituciones()">Buscar</button>
+  </div>
+  <div>
+    <input id="nombre" placeholder="Nombre">
+    <input id="estado" placeholder="Estado">
+    <select id="tipo">
+      <option value="Pública">Pública</option>
+      <option value="Privada">Privada</option>
+    </select>
+    <button onclick="agregarInstitucion()">Agregar</button>
+  </div>
+  <p><strong>Total de instituciones:</strong> <span id="total">0</span></p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Estado</th>
+        <th>Tipo</th>
+        <th>Fecha de Registro</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tabla">
+    </tbody>
+  </table>
+
+<script>
+const API_URL = 'http://localhost:3000/api/instituciones';
+
+function obtenerInstituciones() {
+  const search = document.getElementById('buscar').value;
+  fetch(`${API_URL}?search=${encodeURIComponent(search)}`)
+    .then(res => res.json())
+    .then(data => {
+      const tabla = document.getElementById('tabla');
+      tabla.innerHTML = '';
+      data.forEach(inst => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><input value="${inst.nombre}" onchange="editarInstitucion(${inst.id}, this.parentNode.parentNode)"></td>
+          <td><input value="${inst.estado}" onchange="editarInstitucion(${inst.id}, this.parentNode.parentNode)"></td>
+          <td><input value="${inst.tipo}" onchange="editarInstitucion(${inst.id}, this.parentNode.parentNode)"></td>
+          <td>${inst.fecha_registro}</td>
+          <td class="acciones">
+            <button onclick="eliminarInstitucion(${inst.id})">Eliminar</button>
+          </td>`;
+        tabla.appendChild(row);
+      });
+      document.getElementById('total').textContent = data.length;
+    })
+    .catch(err => console.error('Error al obtener instituciones:', err));
+}
+
+function agregarInstitucion() {
+  const nombre = document.getElementById('nombre').value;
+  const estado = document.getElementById('estado').value;
+  const tipo = document.getElementById('tipo').value;
+  if (!nombre || !estado || !tipo) return alert('Todos los campos son obligatorios');
+
+  fetch(API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nombre, estado, tipo })
+  })
+  .then(res => res.json())
+  .then(() => {
+    document.getElementById('nombre').value = '';
+    document.getElementById('estado').value = '';
+    obtenerInstituciones();
+  })
+  .catch(err => console.error('Error al agregar institución:', err));
+}
+
+function eliminarInstitucion(id) {
+  if (!confirm('¿Estás segura de eliminar esta institución?')) return;
+  fetch(`${API_URL}/${id}`, { method: 'DELETE' })
+    .then(() => obtenerInstituciones())
+    .catch(err => console.error('Error al eliminar:', err));
+}
+
+function editarInstitucion(id, row) {
+  const inputs = row.querySelectorAll('input');
+  const nombre = inputs[0].value;
+  const estado = inputs[1].value;
+  const tipo = inputs[2].value;
+  fetch(`${API_URL}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nombre, estado, tipo })
+  })
+    .then(() => obtenerInstituciones())
+    .catch(err => console.error('Error al editar:', err));
+}
+
+obtenerInstituciones();
+</script>
+</body>
+</html>
